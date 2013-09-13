@@ -2,6 +2,7 @@ package de.infinityblade.netblade;
 
 import java.util.logging.*;
 import jline.console.ConsoleReader;
+import de.infinityblade.netblade.network.packets.*;
 import de.infinityblade.netblade.sql.SQL;
 import de.infinityblade.netblade.network.Client;
 import de.infinityblade.netblade.network.ConnectionManager;
@@ -11,15 +12,16 @@ import de.infinityblade.netblade.scheduler.Scheduler;
 public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 {
 	protected Logger m_log;
-	protected SQL m_mysql;
+	protected SQL m_sql;
 	protected boolean m_isRunning = false;
 	protected ConsoleReader m_reader;
 	protected ServerConfiguration m_config;
 	public static float VERSION = 0.1f;
-	protected boolean m_isMysqlEnabled = true;
+	protected boolean m_isSqlEnabled = true;
 	protected ConnectionManager m_connectionManager;
 	protected ServerStatus m_status;
 	protected Scheduler m_scheduler;
+	protected Packet m_emptyPacket = new EmptyPacket();
 
 	protected NetBladeServerImpl(ConnectionManager inManager)
 	{
@@ -49,8 +51,8 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 					m_log.info("Server shutting down.");
 					try
 					{
-						if(m_mysql != null)
-							m_mysql.stop();
+						if(m_sql != null)
+							m_sql.stop();
 
 						m_isRunning = false;
 						m_connectionManager.stop();
@@ -81,21 +83,22 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 		this.m_log.info("Starting up " + this.getClass().getSimpleName() + " version " + VERSION + ".");
 		this.m_connectionManager.start();
 		this.m_isRunning = true;
-		if(this.m_isMysqlEnabled)
+		if(this.m_isSqlEnabled)
 		{
-			this.m_mysql = new SQL(this);
-			if(!this.m_mysql.tryConnect())
+			if(!this.startSQL())
 			{
 				this.shutdown();
 				return;
 			}
 
-			new Thread(this.m_mysql).start();
+			new Thread(this.m_sql).start();
 		}
 
 		new Thread(this).start();
 		this.m_log.info("Server started.");
 	}
+
+	protected abstract boolean startSQL();
 
 	public boolean isRunning()
 	{
@@ -121,48 +124,15 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	}
 
 	@Override
-	public SQL getSQLServerConnection()
+	public SQL getSQLConnection()
 	{
-		if(!this.m_mysql.isConnected() && this.m_isMysqlEnabled)
+		if(!this.m_sql.isConnected() && this.m_isSqlEnabled)
 		{
 			this.m_log.fine("Lost connection to database.");
-			if(!this.m_mysql.connect())
+			if(!this.m_sql.connect())
 				return null;
 		}
-		return this.m_mysql;
-	}
-
-	protected void header()
-	{
-		this.m_log.info("######################################################");
-		this.m_log.info("#   ------------    --     --   --     ---------     #");
-		this.m_log.info("#   ------------    --     --   --    ----------     #");
-		this.m_log.info("#   ------------    --     --   --   --              #");
-		this.m_log.info("#        ||         --     --   --   --              #");
-		this.m_log.info("#        ||         ---------   --   --              #");
-		this.m_log.info("#        ||         ---------   --    ----------     #");
-		this.m_log.info("#        ||         --     --   --     ----------    #");
-		this.m_log.info("#        ||         --     --   --              --   #");
-		this.m_log.info("#        ||         --     --   --              --   #");
-		this.m_log.info("#        ||         --     --   --     ----------    #");
-		this.m_log.info("#        ||         --     --   --     ---------     #");
-		this.m_log.info("#                                                    #");
-		this.m_log.info("#                                                    #");
-		this.m_log.info("#               --            ---------              #");
-		this.m_log.info("#               --           ----------              #");
-		this.m_log.info("#               --          --                       #");
-		this.m_log.info("#               --          --                       #");
-		this.m_log.info("#               --           ----------              #");
-		this.m_log.info("#               --            ----------             #");
-		this.m_log.info("#               --                     --            #");
-		this.m_log.info("#               --                     --            #");
-		this.m_log.info("#               --            ----------             #");
-		this.m_log.info("#               --            ---------              #");
-		this.m_log.info("#                                                    #");
-		this.m_log.info("#                                                    #");
-		this.m_log.info("#                      MANCHKIN                      #");
-		this.m_log.info("#        (c) Copyright 2012-2013 Tim Hagemann        #");
-		this.m_log.info("######################################################");
+		return this.m_sql;
 	}
 
 	protected void parseParameters(String[] args)
@@ -268,8 +238,8 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 
 	public void closeMysql()
 	{
-		if(this.m_mysql != null && this.m_mysql.isConnected())
-			this.m_mysql.stop();
+		if(this.m_sql != null && this.m_sql.isConnected())
+			this.m_sql.stop();
 	}
 
 	public void dispatchCommand(String inCommand, String[] inArgs)
@@ -330,8 +300,8 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	public void reload()
 	{
 		this.m_config.load();
-		if(this.m_isMysqlEnabled)
-			this.m_mysql = new SQL(this);
+		if(this.m_isSqlEnabled)
+			this.m_sql.connect();
 	}
 
 	@Override
@@ -393,6 +363,12 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	public Scheduler getScheduler()
 	{
 	    return this.m_scheduler;
+	}
+
+	@Override
+	public Packet getEmptyPacket()
+	{
+		return this.m_emptyPacket;
 	}
 
 	public void setEncrypted(boolean inEncrypted)

@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import de.infinityblade.netblade.NetBlade;
-import de.infinityblade.netblade.network.packets.Packet;
+import de.infinityblade.netblade.network.packets.*;
 
 public class ClientConnection extends Thread
 {
@@ -92,7 +92,7 @@ public class ClientConnection extends Thread
 			    this.m_temp.clear();
 			}
 
-			for(Packet p : Packet.spreadPackets(data))
+			for(Packet p : BasePacket.spreadPackets(NetBlade.getServer().getEmptyPacket(), data))
 			{
 				this.m_inQueue.offer(p);
 			}
@@ -127,11 +127,8 @@ public class ClientConnection extends Thread
 			int size = 0;
 			for(Packet packet : inPackets)
 			{
-				if(packet.getDirection() != TransferDirection.SERVER_TO_CLIENT)
-					continue;
-
-				if(!packet.isParsed())
-					packet.parse();
+				if(packet instanceof FormattedPacket && !((FormattedPacket)packet).isParsed())
+					((FormattedPacket)packet).parse();
 
 				try
 				{

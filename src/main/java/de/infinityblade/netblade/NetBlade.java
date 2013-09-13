@@ -36,7 +36,7 @@ public final class NetBlade
 
 	public static SQL getSQLServerConnection()
 	{
-		return s_server.getSQLServerConnection();
+		return s_server.getSQLConnection();
 	}
 
 	public static void reload()
