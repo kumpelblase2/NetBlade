@@ -1,12 +1,12 @@
-package de.infinityblade.netblade.mysql;
+package de.infinityblade.netblade.sql;
 
 import java.sql.ResultSet;
 
-public class MySQLUpdateQuery extends MySQLQuery
+public class SQLUpdateQuery extends SQLQuery
 {
     private MySQLUpdateCallback m_callback;
 
-	public MySQLUpdateQuery(String inQuery)
+	public SQLUpdateQuery(String inQuery)
 	{
 		super(inQuery);
 	}

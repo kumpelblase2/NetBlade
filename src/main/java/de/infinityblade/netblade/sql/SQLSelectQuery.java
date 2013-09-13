@@ -1,17 +1,17 @@
-package de.infinityblade.netblade.mysql;
+package de.infinityblade.netblade.sql;
 
 import java.sql.*;
 
-public class MySQLSelectQuery extends MySQLQuery
+public class SQLSelectQuery extends SQLQuery
 {
 	private MySQLSelectCallback m_callback;
 
-	public MySQLSelectQuery(String inQuery)
+	public SQLSelectQuery(String inQuery)
 	{
 		super(inQuery);
 	}
 
-	public MySQLSelectQuery(String inQuery, MySQLSelectCallback inCallback)
+	public SQLSelectQuery(String inQuery, MySQLSelectCallback inCallback)
 	{
 		super(inQuery);
 		this.m_callback = inCallback;

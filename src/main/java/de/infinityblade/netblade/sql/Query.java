@@ -1,4 +1,4 @@
-package de.infinityblade.netblade.mysql;
+package de.infinityblade.netblade.sql;
 
 public class Query
 {

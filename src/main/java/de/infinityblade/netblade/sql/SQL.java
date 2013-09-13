@@ -1,22 +1,26 @@
-package de.infinityblade.netblade.mysql;
+package de.infinityblade.netblade.sql;
 
 import java.sql.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Logger;
 import de.infinityblade.netblade.*;
 
-public class MySQL implements Runnable
+public abstract class SQL implements Runnable
 {
-	private Connection m_mysqlConnection;
-	private final NetBladeServer m_server;
-	private final ServerConfiguration m_info;
-	private LinkedBlockingQueue<MySQLQuery> m_queries;
-	private boolean m_shouldRun = true;
+	protected Connection m_mysqlConnection;
+	protected LinkedBlockingQueue<SQLQuery> m_queries;
+	protected boolean m_shouldRun = true;
+	protected final Logger m_log;
 
-	public MySQL(NetBladeServer inServer)
+	public SQL()
 	{
-		this.m_server = inServer;
-		this.m_info = inServer.getConfig();
-		this.m_queries = new LinkedBlockingQueue<MySQLQuery>();
+		this(LogManager.getLogger());
+	}
+
+	public SQL(Logger inLogger)
+	{
+		this.m_log = inLogger;
+		this.m_queries = new LinkedBlockingQueue<SQLQuery>();
 	}
 
 	public boolean tryConnect()
@@ -49,21 +53,7 @@ public class MySQL implements Runnable
 		return true;
 	}
 
-	public boolean connect()
-	{
-		try
-		{
-			Class.forName("com.mysql.jdbc.Driver");
-			this.m_mysqlConnection = DriverManager.getConnection("jdbc:mysql://" + this.m_info.get("host", "localhost:3306") + "/" + this.m_info.get("database", "manchkin"), this.m_info.get("user", "root"), this.m_info.get("pass", ""));
-			this.m_mysqlConnection.setAutoCommit(true);
-			LogManager.getLogger().config("Connected to database.");
-			return true;
-		}
-		catch(Exception e)
-		{
-			return false;
-		}
-	}
+	public abstract boolean connect();
 
 	public boolean isConnected()
 	{
@@ -91,7 +81,7 @@ public class MySQL implements Runnable
 			e.printStackTrace();
 		}
 
-		this.m_server.getLogger().finer("Stopped MySQL.");
+		this.m_log.finer("Stopped SQL.");
 	}
 
 	private void waitForQueries()
@@ -111,11 +101,11 @@ public class MySQL implements Runnable
 
 	public void enqueueUpdateQuery(String inQuery)
 	{
-		this.m_queries.offer(new MySQLUpdateQuery(inQuery));
+		this.m_queries.offer(new SQLUpdateQuery(inQuery));
 		LogManager.getLogger().finest("Adding query: " + inQuery);
 	}
 
-	public void enqueueQuery(MySQLQuery inQuery)
+	public void enqueueQuery(SQLQuery inQuery)
 	{
 		this.m_queries.offer(inQuery);
 		LogManager.getLogger().finest("Adding query: " + inQuery.getQuery());
@@ -137,12 +127,12 @@ public class MySQL implements Runnable
 				}
 			}
 
-			MySQLQuery query = this.m_queries.poll();
+			SQLQuery query = this.m_queries.poll();
 			if(query != null)
 			{
 				try
 				{
-					if(query instanceof MySQLUpdateQuery)
+					if(query instanceof SQLUpdateQuery)
 					{
 					    if(!this.isConnected())
 				        {
@@ -152,11 +142,11 @@ public class MySQL implements Runnable
 
 					    PreparedStatement statement = this.m_mysqlConnection.prepareStatement(query.getQuery(), PreparedStatement.RETURN_GENERATED_KEYS);
 						statement.executeUpdate();
-						((MySQLUpdateQuery)query).onGeneratedKeys(statement.getGeneratedKeys());
+						((SQLUpdateQuery)query).onGeneratedKeys(statement.getGeneratedKeys());
 					}
 					else
 					{
-						MySQLSelectQuery select = (MySQLSelectQuery)query;
+						SQLSelectQuery select = (SQLSelectQuery)query;
 						ResultSet result = this.doQuery(select);
 						if(select.getCallback() != null)
 							select.getCallback().run(result);
@@ -164,15 +154,27 @@ public class MySQL implements Runnable
 				}
 				catch(Exception e)
 				{
-					this.m_server.getLogger().warning("Unable to execute query: " + e.getMessage());
-					this.m_server.getLogger().fine("Query was: " + query);
+					this.m_log.warning("Unable to execute query: " + e.getMessage());
+					this.m_log.fine("Query was: " + query);
 				}
 			}
 		}
-		this.m_server.getLogger().finer("Shutting down MySQL");
+
+		if(this.m_mysqlConnection != null)
+		{
+			try
+			{
+				this.m_mysqlConnection.close();
+			}
+			catch(SQLException e)
+			{
+			}
+		}
+
+		this.m_log.finer("Shutting down SQL");
 	}
 
-	public ResultSet doQuery(MySQLQuery inQuery)
+	public ResultSet doQuery(SQLQuery inQuery)
 	{
 		if(!this.isConnected())
 		{
@@ -186,8 +188,8 @@ public class MySQL implements Runnable
 		}
 		catch(Exception e)
 		{
-			this.m_server.getLogger().warning("Unable to execute query: " + e.getMessage());
-			this.m_server.getLogger().fine("Query was: " + inQuery.getQuery());
+			this.m_log.warning("Unable to execute query: " + e.getMessage());
+			this.m_log.fine("Query was: " + inQuery.getQuery());
 			return null;
 		}
 	}

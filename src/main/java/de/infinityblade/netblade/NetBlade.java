@@ -1,6 +1,6 @@
 package de.infinityblade.netblade;
 
-import de.infinityblade.netblade.mysql.MySQL;
+import de.infinityblade.netblade.sql.SQL;
 import de.infinityblade.netblade.network.Client;
 import de.infinityblade.netblade.network.ConnectionManager;
 import de.infinityblade.netblade.network.ServerStatus;
@@ -34,7 +34,7 @@ public final class NetBlade
 		return s_server.getClients();
 	}
 
-	public static MySQL getSQLServerConnection()
+	public static SQL getSQLServerConnection()
 	{
 		return s_server.getSQLServerConnection();
 	}

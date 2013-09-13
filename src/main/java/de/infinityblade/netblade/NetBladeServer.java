@@ -1,7 +1,7 @@
 package de.infinityblade.netblade;
 
 import java.util.logging.Logger;
-import de.infinityblade.netblade.mysql.MySQL;
+import de.infinityblade.netblade.sql.SQL;
 import de.infinityblade.netblade.network.Client;
 import de.infinityblade.netblade.network.ConnectionManager;
 import de.infinityblade.netblade.network.ServerStatus;
@@ -15,7 +15,7 @@ public interface NetBladeServer
 	public int getPort();
 	public void setPort(int inPort);
 	public Logger getLogger();
-	public MySQL getSQLServerConnection();
+	public SQL getSQLServerConnection();
 	public void dispatchCommand(String inCommand, String[] inArgs);
 	public ServerConfiguration getConfig();
 	public void reload();

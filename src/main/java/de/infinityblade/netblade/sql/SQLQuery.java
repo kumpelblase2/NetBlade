@@ -1,10 +1,10 @@
-package de.infinityblade.netblade.mysql;
+package de.infinityblade.netblade.sql;
 
-public abstract class MySQLQuery
+public abstract class SQLQuery
 {
 	private final String m_query;
 
-	public MySQLQuery(String inQuery)
+	public SQLQuery(String inQuery)
 	{
 		this.m_query = inQuery;
 	}

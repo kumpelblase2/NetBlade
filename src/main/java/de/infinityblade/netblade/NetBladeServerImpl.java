@@ -2,7 +2,7 @@ package de.infinityblade.netblade;
 
 import java.util.logging.*;
 import jline.console.ConsoleReader;
-import de.infinityblade.netblade.mysql.MySQL;
+import de.infinityblade.netblade.sql.SQL;
 import de.infinityblade.netblade.network.Client;
 import de.infinityblade.netblade.network.ConnectionManager;
 import de.infinityblade.netblade.network.ServerStatus;
@@ -11,7 +11,7 @@ import de.infinityblade.netblade.scheduler.Scheduler;
 public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 {
 	protected Logger m_log;
-	protected MySQL m_mysql;
+	protected SQL m_mysql;
 	protected boolean m_isRunning = false;
 	protected ConsoleReader m_reader;
 	protected ServerConfiguration m_config;
@@ -83,7 +83,7 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 		this.m_isRunning = true;
 		if(this.m_isMysqlEnabled)
 		{
-			this.m_mysql = new MySQL(this);
+			this.m_mysql = new SQL(this);
 			if(!this.m_mysql.tryConnect())
 			{
 				this.shutdown();
@@ -121,7 +121,7 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	}
 
 	@Override
-	public MySQL getSQLServerConnection()
+	public SQL getSQLServerConnection()
 	{
 		if(!this.m_mysql.isConnected() && this.m_isMysqlEnabled)
 		{
@@ -331,7 +331,7 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	{
 		this.m_config.load();
 		if(this.m_isMysqlEnabled)
-			this.m_mysql = new MySQL(this);
+			this.m_mysql = new SQL(this);
 	}
 
 	@Override
