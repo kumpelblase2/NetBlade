@@ -26,7 +26,7 @@ public class OperationHandler
 		{
 			if(method.getParameterTypes().length == 2)
 			{
-				if(method.getParameterTypes()[0] != Packet.class || !method.getParameterTypes()[1].isAssignableFrom(Client.class))
+				if(!Packet.class.isAssignableFrom(method.getParameterTypes()[0]) || !method.getParameterTypes()[1].isAssignableFrom(Client.class))
 					continue;
 
 				for(Annotation ann : method.getAnnotations())
