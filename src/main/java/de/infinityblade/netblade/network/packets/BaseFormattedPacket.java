@@ -37,9 +37,15 @@ public abstract class BaseFormattedPacket extends BasePacket implements Formatte
 		if(this.m_parser != null)
 		{
 			if(this.m_rawData != null)
+			{
 				this.setParsedData(this.m_parser.parse(this.getRawData()));
+				this.m_isParsed = this.getParsedData().size() != 0;
+			}
 			else
+			{
 				this.setRawData(this.m_parser.parse(this.getParsedData()));
+				this.m_isParsed = this.getRawData().length >= 1;
+			}
 		}
 	}
 
