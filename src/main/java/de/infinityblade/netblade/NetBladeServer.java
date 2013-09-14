@@ -11,6 +11,7 @@ import de.infinityblade.netblade.scheduler.Scheduler;
 public interface NetBladeServer
 {
 	public Client[] getClients();
+	public boolean load();
 	public void start();
 	public void shutdown();
 	public int getPort();

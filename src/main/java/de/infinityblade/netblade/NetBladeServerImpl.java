@@ -79,24 +79,37 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	}
 
 	@Override
-	public void start()
+	public boolean load()
 	{
 		this.m_log.info("Starting up " + this.getClass().getSimpleName() + " version " + VERSION + ".");
 		this.m_connectionManager.start();
-		this.m_isRunning = true;
 		if(this.m_isSqlEnabled)
 		{
 			if(!this.startSQL())
 			{
 				this.shutdown();
-				return;
+				return false;
 			}
-
-			new Thread(this.m_sql).start();
 		}
 
+		return true;
+	}
+
+	@Override
+	public void start()
+	{
+		if(this.m_isSqlEnabled)
+			new Thread(this.m_sql).start();
 
 		new Thread(this).start();
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				NetBladeServerImpl.this.getConnectionManager().startListening();
+			}
+		}).start();
 		this.m_log.info("Server started.");
 		this.heart();
 	}
