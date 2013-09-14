@@ -7,7 +7,7 @@ public abstract class BasePacket implements Packet
 {
 	protected byte[] m_rawData;
 	protected final Charset m_charset = Charset.forName("UTF-8");
-	protected static byte DEFAULT_END_IDENTIFIER = 0x1C;
+	protected static byte DEFAULT_END_IDENTIFIER = 0x1D;
 	protected byte m_endIdentifier;
 
 	public BasePacket()
