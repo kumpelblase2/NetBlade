@@ -92,7 +92,7 @@ public class ClientConnection extends Thread
 			    this.m_temp.clear();
 			}
 
-			for(Packet p : BasePacket.spreadPackets(NetBlade.getServer().getEmptyPacket(), data))
+			for(Packet p : this.readPackets(data))
 			{
 				this.m_inQueue.offer(p);
 			}
@@ -113,11 +113,6 @@ public class ClientConnection extends Thread
 	public void enqueueOutgoingPacket(Packet inPacket)
 	{
 		this.m_outQueue.offer(inPacket);
-	}
-
-	void sendPacket(Packet inPacket)
-	{
-		this.sendPackets(Arrays.asList(inPacket));
 	}
 
 	void sendPackets(List<Packet> inPackets)
@@ -143,7 +138,7 @@ public class ClientConnection extends Thread
 			}
 
 			this.m_outputStream.flush();
-			NetBlade.getServer().getLogger().finest("[" + this.getClient().getConnectionManager().getName() + "] Send "+ size + " bytes to client " + this.m_client.getConnectionID());
+			NetBlade.getServer().getLogger().finest("[" + this.getClient().getConnectionManager().getName() + "] Sent "+ size + " bytes to client " + this.m_client.getConnectionID());
 		}
 		catch(Exception ex)
 		{
@@ -180,5 +175,10 @@ public class ClientConnection extends Thread
 	public String getIP()
 	{
 		return this.m_socket.getInetAddress().getHostAddress();
+	}
+
+	protected List<Packet> readPackets(byte[] inData)
+	{
+		return BasePacket.spreadPackets(NetBlade.getServer().getEmptyPacket(), inData);
 	}
 }
