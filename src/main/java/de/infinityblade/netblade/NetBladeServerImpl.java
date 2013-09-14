@@ -22,6 +22,7 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	protected ServerStatus m_status;
 	protected Scheduler m_scheduler;
 	protected Packet m_emptyPacket = new EmptyPacket();
+	protected long m_tickInterval = 50;
 
 	protected NetBladeServerImpl(ConnectionManager inManager)
 	{
@@ -94,9 +95,26 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 			new Thread(this.m_sql).start();
 		}
 
+
 		new Thread(this).start();
 		this.m_log.info("Server started.");
+		this.heart();
 	}
+
+	protected void heart()
+	{
+		long lastBeat = 0;
+		while(this.m_isRunning)
+		{
+			if(System.currentTimeMillis() - lastBeat >= this.m_tickInterval)
+			{
+				this.m_scheduler.tick();
+				this.onTick();
+			}
+		}
+	}
+
+	protected abstract void onTick();
 
 	protected abstract boolean startSQL();
 
