@@ -98,6 +98,7 @@ public abstract class NetBladeServerImpl implements NetBladeServer, Runnable
 	@Override
 	public void start()
 	{
+		this.m_isRunning = true;
 		if(this.m_isSqlEnabled)
 			new Thread(this.m_sql).start();
 
