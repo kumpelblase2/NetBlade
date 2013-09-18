@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
-import de.infinityblade.netblade.NetBlade;
 import de.infinityblade.netblade.network.packets.Packet;
 import de.infinityblade.netblade.operations.OperationHandler;
 
